@@ -14,5 +14,5 @@ connect all                       Open all the connections
 disconnect <connection name>      Close the given connection
 disconnect all                    Close all the connections
 ls                                List all the configured connections
-status                            Display ongoing connections
-```
+connections                       Display ongoing connections
+

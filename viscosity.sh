@@ -23,7 +23,7 @@ display_usage() {
     echo -e "disconnect <connection name>      Close the given connection"
     echo -e "disconnect all                    Close all the connections"
     echo -e "ls                                List all the configured connections"
-    echo -e "status                            Display ongoing connections"
+    echo -e "connections                       Display ongoing connections"
     exit 2
 }
 
@@ -49,7 +49,7 @@ cmd="$1"
 arg="$2"
 
 case $cmd in
-    status|connections)
+    connections)
         if [ -z "$QUIET" ]; then
            echo "Connection name"
            echo "---------------"
@@ -62,18 +62,24 @@ case $cmd in
         ;;
     ls|list)
         if [ -z "$QUIET" ]; then
-           echo "Connection name"
-           echo "---------------"
+           echo "Connection name               Status"
+           echo "--------------------------------------------"
         fi
         osascript -e 'tell application "Viscosity"
-          set connames to name of connections
-          return connames
+          set result to {}
+          repeat with con in connections
+              set result to result & ((get name of con) & "|" & (get state of con))
+          end repeat
+          return result
         end tell
-        ' | tr , '\n' | sed 's/^ *//;s/ *$//' | sort
+        ' | tr , '\n' | sed 's/^ *//;s/ *$//' | column -t -s \\"|\\" | sort
         ;;
-    connect|connect-all)
+    connect|connect-all|start|start-all)
         if [ "$arg" == "all" ]; then
             osascript -e 'tell application "Viscosity" to connectall'
+        elif [ "$arg" == "" ]; then
+            echo "$0: missing argument connection name"
+            exit 1
         else
             osascript -e "tell application \"Viscosity\" to connect \"$arg\""
         fi
@@ -81,9 +87,12 @@ case $cmd in
             echo "Connecting $arg"
         fi
         ;;
-    disconnect|connect-all)
+    disconnect|connect-all|stop|stop-all)
         if [ "$arg" == "all" ]; then
             osascript -e 'tell application "Viscosity" to disconnectall'
+        elif [ "$arg" == "" ]; then
+            echo "$0: missing argument connection name"
+            exit 1
         else
             osascript -e "tell application \"Viscosity\" to disconnect \"$arg\""
         fi
